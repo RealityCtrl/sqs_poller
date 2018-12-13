@@ -4,17 +4,14 @@ Description: >
 
     Sample SAM Template for AWS Serverless Application
 
-Paraemeters:
+Parameters:
   QName:
     Description: name of SQS queue to be polled
     Type: String
-  QURL:
-    Description: url of SQS queue to be polled
-    Type: String
-  S3Bucket:
+  InputS3Bucket:
     Description: S3 bucket that notification are coming from for permissions
     Type: String
-  FunctionName:
+  FName:
     Description: Lambda function name
     Type: String
   CodeBucket:
@@ -54,9 +51,9 @@ Paraemeters:
   ConcurrentExecutions:
     Description: number of reserved concurrent executions, 0 is throttled
     Type: Number
+    Default: 1000
     MinValue: 0
     MaxValue: 1000
-    Default: !Ref "AWS::NoValue"
   LambdaLayers:
     Description: list of arns of lambda layers
     Type: CommaDelimitedList
@@ -67,71 +64,67 @@ Resources:
   LambdaRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Join ["-",[!Ref FunctionName, "lambda","execution"]]
+      RoleName: !Join ["-",[!Ref FName, "lambda","execution"]]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Principal:
-                Service:
-                  - "lambda.amazonaws.com"
-              Action:
-                - "sts:AssumeRole"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
       Path: "/"
       Policies:
-        - PolicyName: !Join ["-"[!Ref S3Bucket, "s3-bucket-access"]]
+        -
+          PolicyName: !Join ["-", [!Ref InputS3Bucket, "s3-bucket-access"]]
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              - Effect: "Allow"
+              -
+                Effect: "Allow"
                 Action: "*"
                 Resource:
-                  !Join [":",["arn:aws:s3::", !Join[""[!Ref S3Bucket,"/"]]],
-                  !Join [":",["arn:aws:s3::", !Join[""[!Ref S3Bucket,"/*"]]]
-       - PolicyName: !Join ["-"[!Ref QName, "sqs-receive"]]
-           PolicyDocument:
-             Version: "2012-10-17"
-             Statement:
-               - Effect: "Allow"
-                 Action: "SQS:ReceiveMessage"
-                 Resource:
-                   !Join [":",["arn:aws:sqs:", !Ref Region, !Ref Account, !Ref QName]]
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/"]]]]
+                  - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/*"]]]]
+        -
+          PolicyName: !Join ["-", [!Ref QName, "sqs-receive"]]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action: "SQS:ReceiveMessage"
+                Resource:
+                  !Join [":", ["arn:aws:sqs:", !Ref Region, !Ref Account, !Ref QName]]
 
   PollingFunction:
-    Type: "AWS::Lambda::Function" # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: "AWS::Lambda::Function"
     Properties:
+      FunctionName: !Ref FName
       Code:
         S3Bucket: !Ref CodeBucket
         S3Key: !Ref CodeFile
       Handler: app.lambda_handler
       Runtime: python3.6
-      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+      Environment:
         Variables:
-            endpoint: !Ref QURL
-            max_messages: !Ref NumMessages
-            wait_time: !Ref MessagePollTime
-      Role: !Ref LambdaRole
+          endpoint: !Join ["/", [!Join [".", ["https://sqs", !Ref Region, "amazonaws", "com"]], !Ref Account ,!Ref QName]]
+          max_messages: !Ref NumMessages
+          wait_time: !Ref MessagePollTime
+      Role: !GetAtt LambdaRole.Arn
       MemorySize: !Ref Memory
       Timeout: !Ref ExcTime
-      Layers:
-        !Ref LambdaLayers
-      #Events:
-      #  HelloWorld:
-      #    Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-      #    Properties:
-      #      Path: /hello
-      #      Method: get
+      ReservedConcurrentExecutions: !Ref ConcurrentExecutions
+      Layers: !Ref LambdaLayers
 
 Outputs:
 
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-
-  HelloWorldFunction:
+  LambdaFunction:
     Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
+    Value: !GetAtt PollingFunction.Arn
 
-  HelloWorldFunctionIamRole:
+  PollingFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+    Value: !GetAtt LambdaRole.Arn

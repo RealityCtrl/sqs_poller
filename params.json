@@ -4,11 +4,11 @@
     "ParameterValue": "sqsnotifications-sndbx"
   },
   {
-    "ParameterKey": "S3Bucket",
+    "ParameterKey": "InputS3Bucket",
     "ParameterValue": "sqsnotifications-sndbx"
   },
   {
-    "ParameterKey": "FunctionName",
+    "ParameterKey": "FName",
     "ParameterValue": "sqsnotifications-poller-sndbx"
   },
   {
@@ -28,8 +28,27 @@
     "ParameterValue": "838188513541"
   },
   {
+    "ParameterKey": "NumMessages",
+    "ParameterValue": "10"
+  },
+  {
+    "ParameterKey": "MessagePollTime",
+    "ParameterValue": "20"
+  },
+  {
+    "ParameterKey": "Memory",
+    "ParameterValue": "128"
+  },
+  {
+    "ParameterKey": "ExcTime",
+    "ParameterValue": "25"
+  },
+  {
+    "ParameterKey": "ConcurrentExecutions",
+    "ParameterValue": "10"
+  },
+  {
     "ParameterKey": "LambdaLayers",
     "ParameterValue": "arn:aws:lambda:eu-west-1:838188513541:layer:test_layer:1"
   }
-
 ]
