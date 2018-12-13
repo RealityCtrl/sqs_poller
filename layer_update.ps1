@@ -1,4 +1,4 @@
-Compress-Archive -Path C:\Users\david\git\polling_lambda\hello_world -DestinationPath C:\tmp\poller_code.zip -Update
+Compress-Archive -Path C:\Users\david\git\polling_lambda\hello_world\* -DestinationPath C:\tmp\poller_code.zip -Update
 Import-Module AWSPowerShell
 Write-S3Object -BucketName lambda-deployment-realityctrl-sndbx -File C:\tmp\poller_code.zip
 $content = [IO.File]::ReadAllText("C:\Users\david\git\polling_lambda\template.yaml")

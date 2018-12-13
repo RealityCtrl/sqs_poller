@@ -97,7 +97,7 @@ Resources:
                 Effect: "Allow"
                 Action: "SQS:ReceiveMessage"
                 Resource:
-                  !Join [":", ["arn:aws:sqs:", !Ref Region, !Ref Account, !Ref QName]]
+                  - !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Ref QName]]
 
   PollingFunction:
     Type: "AWS::Lambda::Function"
@@ -118,6 +118,13 @@ Resources:
       Timeout: !Ref ExcTime
       ReservedConcurrentExecutions: !Ref ConcurrentExecutions
       Layers: !Ref LambdaLayers
+
+  LayerPermission:
+    Type: "AWS::Lambda::LayerVersionPermission"
+    Properties:
+      Action: lambda:GetLayerVersion
+      LayerVersionArn: !Select [0, !Ref LambdaLayers]
+      Principal: "*"
 
 Outputs:
 
