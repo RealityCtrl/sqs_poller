@@ -84,7 +84,7 @@ Resources:
             Statement:
               -
                 Effect: "Allow"
-                Action: "*"
+                Action: "s3:*"
                 Resource:
                   - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/"]]]]
                   - !Join [":", ["arn:aws:s3::", !Join ["", [!Ref InputS3Bucket, "/*"]]]]
@@ -95,7 +95,7 @@ Resources:
             Statement:
               -
                 Effect: "Allow"
-                Action: "SQS:ReceiveMessage"
+                Action: "sqs:ReceiveMessage"
                 Resource:
                   - !Join [":", ["arn:aws:sqs", !Ref Region, !Ref Account, !Ref QName]]
 
