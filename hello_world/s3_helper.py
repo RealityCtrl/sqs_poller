@@ -9,7 +9,7 @@ def get_download_url(object_dict):
     bucket = object_dict["Bucket"]
     key = object_dict["Key"]
     s3_client.head_bucket(Bucket=bucket)
-    generate_presigned_url(bucket, key)
+    return generate_presigned_url(bucket, key)
 
 def generate_presigned_url(bucket, key):
     return s3_client.generate_presigned_url(
